@@ -291,14 +291,14 @@
  * The minimum number of bits of entropy before we wake up a read on
  * /dev/random.  Should be enough to do a significant reseed.
  */
-static int random_read_wakeup_thresh = 512;
+static int random_read_wakeup_thresh = 64;
 
 /*
  * If the entropy count falls under this number of bits, then we
  * should wake up processes which are selecting or polling on write
  * access to /dev/random.
  */
-static int random_write_wakeup_thresh = 256;
+static int random_write_wakeup_thresh = 128;
 
 /*
  * When the input pool goes over trickle_thresh, start dropping most
@@ -941,8 +941,8 @@ static void extract_buf(struct entropy_store *r, __u8 *out)
 	 * pool while mixing, and hash one final time.
 	 */
 	sha_transform(hash.w, extract, workspace);
-	memset(extract, 0, sizeof(extract));
-	memset(workspace, 0, sizeof(workspace));
+	memzero_explicit(extract, sizeof(extract));
+	memzero_explicit(workspace, sizeof(workspace));
 
 	/*
 	 * In case the hash function has some recognizable output
@@ -965,7 +965,7 @@ static void extract_buf(struct entropy_store *r, __u8 *out)
 	}
 
 	memcpy(out, &hash, EXTRACT_SIZE);
-	memset(&hash, 0, sizeof(hash));
+	memzero_explicit(&hash, sizeof(hash));
 }
 
 static ssize_t extract_entropy(struct entropy_store *r, void *buf,
@@ -1013,7 +1013,7 @@ static ssize_t extract_entropy(struct entropy_store *r, void *buf,
 	}
 
 	/* Wipe data just returned from memory */
-	memset(tmp, 0, sizeof(tmp));
+	memzero_explicit(tmp, sizeof(tmp));
 
 	return ret;
 }
@@ -1051,7 +1051,7 @@ static ssize_t extract_entropy_user(struct entropy_store *r, void __user *buf,
 	}
 
 	/* Wipe data just returned from memory */
-	memset(tmp, 0, sizeof(tmp));
+	memzero_explicit(tmp, sizeof(tmp));
 
 	return ret;
 }
@@ -1501,6 +1501,28 @@ unsigned int get_random_int(void)
 	return ret;
 }
 EXPORT_SYMBOL(get_random_int);
+
+/*
+ * Same as get_random_int(), but returns unsigned long.
+ */
+unsigned long get_random_long(void)
+{
+	__u32 *hash;
+	unsigned long ret;
+
+	if (arch_get_random_long(&ret))
+		return ret;
+
+	hash = get_cpu_var(get_random_int_hash);
+
+	hash[0] += current->pid + jiffies + get_cycles();
+	md5_transform(hash, random_int_secret);
+	ret = *(unsigned long *)hash;
+	put_cpu_var(get_random_int_hash);
+
+	return ret;
+}
+EXPORT_SYMBOL(get_random_long);
 
 /*
  * randomize_range() returns a start address such that
