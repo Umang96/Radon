@@ -1,3 +1,8 @@
+on boot
+    write /sys/devices/platform/kcal_ctrl.0/kcal_sat 270
+    write /sys/devices/platform/kcal_ctrl.0/kcal_val 258
+    write /sys/devices/platform/kcal_ctrl.0/kcal_cont 264
+
 on enable-low-power
     write /proc/sys/kernel/sched_boost 0
 
