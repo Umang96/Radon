@@ -48,7 +48,6 @@ make -j4
 time=$(date +"%d-%m-%y-%T")
 $DTBTOOL -2 -o $KERNEL_DIR/arch/arm64/boot/dt.img -s 2048 -p $KERNEL_DIR/scripts/dtc/ $KERNEL_DIR/arch/arm/boot/dts/
 mv $KERNEL_DIR/arch/arm64/boot/dt.img $KERNEL_DIR/build/tools/dt.img
-fi
 cp $KERNEL_DIR/arch/arm64/boot/Image $KERNEL_DIR/build/tools/Image
 cp $KERNEL_DIR/drivers/staging/prima/wlan.ko $KERNEL_DIR/build/modules/wlan.ko
 cd $KERNEL_DIR/build/modules/
@@ -62,11 +61,11 @@ cd $KERNEL_DIR/build
 rm *.zip
 if [ $build == 1 ]; then
 zip -r Radon-Tomato-Cm-Mm.zip *
-elif [ $build == 1 ]; then
+elif [ $build == 2 ]; then
 zip -r Radon-Lettuce-Cm-Mm.zip *
 fi
 End=$(date +"%s")
 Diff=$(($End - $Start))
 echo -e "$gre << Build completed in $(($Diff / 60)) minutes and $(($Diff % 60)) seconds >>$white"
-fi
 cd $KERNEL_DIR
+fi
