@@ -56,6 +56,7 @@ zimage=$KERNEL_DIR/arch/arm64/boot/Image
 if ! [ -a $zimage ];
 then
 echo -e "$red << Failed to compile zImage, fix the errors first >>$white"
+cd $KERNEL_DIR
 else
 cd $KERNEL_DIR/build
 rm *.zip
