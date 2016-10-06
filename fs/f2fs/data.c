@@ -454,6 +454,15 @@ static int get_data_block_ro(struct inode *inode, sector_t iblock,
 	return 0;
 }
 
+static int get_data_block_bmap(struct inode *inode, sector_t iblock,
+			struct buffer_head *bh_result, int create)
+{
+	/* Block number less than F2FS MAX BLOCKS */
+	if (unlikely(iblock >= max_file_size(0)))
+		return -EFBIG;
+	return get_data_block_ro(inode, iblock, bh_result, create);
+}
+
 static int f2fs_read_data_page(struct file *file, struct page *page)
 {
 	return mpage_readpage(page, get_data_block_ro);
